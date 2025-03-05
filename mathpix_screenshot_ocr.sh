@@ -1,50 +1,50 @@
 #!/bin/bash
-# 依赖: grim, slurp, bun, wl-clipboard
-# 确保已安装bun和相关依赖
+# Dependencies: grim, slurp, bun, wl-clipboard
+# Make sure bun and related dependencies are installed
 
-# 设置临时文件路径
+# Set temporary file path
 SCR="$HOME/screenshot-$(date +%s).png"
 
-# 显示通知
-notify-send "截图OCR" "请选择要识别的区域" -t 2000
+# Display notification
+notify-send "Screenshot OCR" "Please select an area to capture" -t 2000
 
-# 使用grim和slurp获取截图
+# Use grim and slurp to capture screenshot
 grim -g "$(slurp)" "$SCR"
 
-# 检查截图是否成功
+# Check if screenshot was successful
 if [ ! -f "$SCR" ]; then
-    notify-send "截图OCR" "截图失败" -u critical
+    notify-send "Screenshot OCR" "Screenshot failed" -u critical
     exit 1
 fi
 
-notify-send "截图OCR" "正在处理图像..." -t 2000
+notify-send "Screenshot OCR" "Processing image..." -t 2000
 
-# 获取脚本所在目录
+# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 检查是否已安装依赖
+# Check if dependencies are installed
 if [ ! -d "$SCRIPT_DIR/node_modules" ]; then
-    notify-send "截图OCR" "正在安装依赖..." -t 2000
+    notify-send "Screenshot OCR" "Installing dependencies..." -t 2000
     cd "$SCRIPT_DIR" && bun install
 fi
 
-# 使用Bun运行TypeScript脚本
+# Use Bun to run TypeScript script
 TEXT_RESULT=$(cd "$SCRIPT_DIR" && bun run mathpix_ocr.ts "$SCR" --text-only)
 
-# 检查OCR是否成功
+# Check if OCR was successful
 if [ -z "$TEXT_RESULT" ]; then
-    notify-send "截图OCR" "OCR识别失败或结果为空" -u critical
+    notify-send "Screenshot OCR" "OCR failed or result is empty" -u critical
     rm "$SCR"
     exit 1
 fi
 
-# 复制结果到剪贴板
+# Copy result to clipboard
 echo "$TEXT_RESULT" | wl-copy
 
-# 显示通知
-notify-send "截图OCR" "识别完成，结果已复制到剪贴板" -t 3000
+# Display notification
+notify-send "Screenshot OCR" "Recognition complete, result copied to clipboard" -t 3000
 
-# 清理临时文件
+# Clean up temporary files
 rm "$SCR"
 
 exit 0 
